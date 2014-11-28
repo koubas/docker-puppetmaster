@@ -62,6 +62,9 @@ RUN chmod +x /sbin/run-puppet-agent
 ADD scripts/nginx-startup.sh /etc/service/nginx/run
 RUN chmod +x /etc/service/nginx/run
 
+ADD scripts/run-puppetdb.sh /etc/service/puppetdb/run
+RUN chmod +x /etc/service/puppetdb/run
+
 # Expose Puppet Master port
 EXPOSE 8140
 
