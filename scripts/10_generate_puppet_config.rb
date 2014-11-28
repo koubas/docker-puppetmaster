@@ -27,7 +27,7 @@ puppetmaster_verbose              = ENV.fetch("PUPPETMASTER_VERBOSE", nil)
 puppetmaster_debug                = ENV.fetch("PUPPETMASTER_DEBUG", nil)
 puppetmaster_environments_enabled = ENV.fetch("PUPPETMASTER_ENVIRONMENTS_ENABLED", nil)
 
-passenger_conf_file      = "/usr/share/puppet/rack/puppetmaster/config.ru" 
+passenger_conf_file      = "/usr/share/puppet/rack/puppetmaster/config.ru"
 
 fqdn     = Facter.value('fqdn')
 hostname = Facter.value('hostname')
@@ -61,10 +61,16 @@ environmentpath=$confdir/environments/
 <% else %>
 manifest=$confdir/manifests/
 <% end %>
+
+pluginsync = true
+
 [master]
 masterport = <%= puppetmaster_port %>
 ssl_client_header = HTTP_X_CLIENT_S_DN
 ssl_client_verify_header = HTTP_X_CLIENT_VERIFY
+
+storesconfig = true
+storesconfig_backend = puppetdb
 
 [agent]
 server = <%= hostname %>

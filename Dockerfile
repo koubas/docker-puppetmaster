@@ -32,13 +32,20 @@ RUN ln -s /etc/nginx/sites-available/puppetmaster /etc/nginx/sites-enabled/puppe
     && rm /etc/nginx/sites-enabled/default
 
 # Install the Puppet Master's rack server
-RUN mkdir -p /usr/share/puppet/rack/puppetmaster/tmp /usr/share/puppet/rack/puppetmaster/public \ 
+RUN mkdir -p /usr/share/puppet/rack/puppetmaster/tmp /usr/share/puppet/rack/puppetmaster/public \
     && chown puppet:puppet -R /usr/share/puppet/rack/puppetmaster
 
 # Backup the Puppet config files, we'll regenerate them on boot if they're not present
 RUN mkdir -p /usr/lib/puppet/default \
     && find /etc/puppet -maxdepth 1 -type f -iname "*.conf" -exec mv {} /usr/lib/puppet/default \; \
-    && cp /usr/share/puppet/ext/rack/config.ru /usr/lib/puppet/default 
+    && cp /usr/share/puppet/ext/rack/config.ru /usr/lib/puppet/default
+
+# Puppetdb installation Autosign every host, development only
+RUN echo "*" > /etc/puppet/autosign.conf
+RUN apt-get install --yes -q 2 puppetdb-terminus
+RUN puppet module install puppetlabs-puppetdb
+RUN puppet apply -e "class { 'puppetdb': database => 'embedded', ssl_listen_address => '0.0.0.0' }"
+RUN service puppetdb start
 
 # Install boot scripts
 ADD scripts/10_generate_puppet_config.rb /etc/my_init.d/
