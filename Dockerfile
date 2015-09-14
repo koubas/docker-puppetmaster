@@ -41,11 +41,10 @@ RUN mkdir -p /usr/lib/puppet/default \
     && find /etc/puppet -maxdepth 1 -type f -iname "*.conf" -exec mv {} /usr/lib/puppet/default \; \
     && cp /usr/share/puppet/ext/rack/config.ru /usr/lib/puppet/default
 
-# Puppetdb installation Autosign every host, development only
-RUN echo "*" > /etc/puppet/autosign.conf
-RUN apt-get install --yes -q 2 puppetdb-terminus
+# Puppetdb installation
+RUN apt-get install --yes -q 2 puppetdb-terminus 
 RUN puppet module install puppetlabs-puppetdb
-RUN puppet apply -e "class { 'puppetdb': database => 'embedded', ssl_listen_address => '0.0.0.0' }"
+RUN puppet apply -e "class { 'puppetdb::globals': version => '2.3.7-1puppetlabs1'; 'puppetdb': database => 'embedded', ssl_listen_address => '0.0.0.0' }"
 RUN service puppetdb start
 
 # Install boot scripts
@@ -53,6 +52,7 @@ ADD scripts/10_generate_puppet_config.rb /etc/my_init.d/
 ADD scripts/11_generate_nginx_site.rb /etc/my_init.d/
 ADD scripts/12_generate_puppetmaster_keys.sh /etc/my_init.d/
 ADD scripts/13_add_puppet_cron.sh /etc/my_init.d/
+ADD scripts/14_setup_puppetdb_keys.sh /etc/my_init.d/
 RUN chmod +x /etc/my_init.d/*
 
 # Install Puppet Agent script
@@ -63,11 +63,15 @@ RUN chmod +x /sbin/run-puppet-agent
 ADD scripts/nginx-startup.sh /etc/service/nginx/run
 RUN chmod +x /etc/service/nginx/run
 
+# Install Puppetdb script
 ADD scripts/run-puppetdb.sh /etc/service/puppetdb/run
 RUN chmod +x /etc/service/puppetdb/run
 
 # Expose Puppet Master port
 EXPOSE 8140
+
+# Expose Puppetdb port
+EXPOSE 8081
 
 # use baseimage's init system
 CMD ["/sbin/my_init"]
